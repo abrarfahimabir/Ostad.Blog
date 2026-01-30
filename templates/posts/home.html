@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Home | Explore Latest Insights{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    /* Hero Section */
+    .hero-banner {
+        text-align: center;
+        padding: 40px 0 60px;
+        background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent);
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #1e293b;
+        letter-spacing: -1px;
+    }
+
+    .hero-subtitle {
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+
+    /* Modern Blog Card */
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .post-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .post-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        border-color: #6366f1;
+    }
+
+    /* Meta Info */
+    .post-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .author-badge {
+        background: #f1f5f9;
+        color: #4f46e5;
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .post-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.4;
+        margin-bottom: 12px;
+        transition: 0.3s;
+    }
+
+    .post-card:hover .post-title {
+        color: #4f46e5;
+    }
+
+    .post-excerpt {
+        color: #475569;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        flex-grow: 1;
+        margin-bottom: 20px;
+    }
+
+    /* Read More Button */
+    .btn-read {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: 0.3s;
+    }
+
+    .btn-read i {
+        transition: 0.3s;
+    }
+
+    .btn-read:hover {
+        color: #3730a3;
+    }
+
+    .btn-read:hover i {
+        transform: translateX(5px);
+    }
+
+    /* Empty State */
+    .empty-state {
+        background: white;
+        border-radius: 2rem;
+        padding: 60px;
+        text-align: center;
+        border: 2px dashed #e2e8f0;
+    }
+</style>
+
+<div class="hero-banner animate__animated animate__fadeIn">
+    <h1 class="hero-title">Latest Blog Posts</h1>
+    <p class="hero-subtitle">Discover stories, thinking, and expertise from writers on any topic.</p>
+</div>
+
+<div class="container pb-5">
+    {% if posts %}
+        <div class="blog-grid">
+            {% for post in posts %}
+                <article class="post-card animate__animated animate__fadeIn">
+                    <div class="post-meta">
+                        <span class="author-badge">
+                            <i class="fa-solid fa-user-circle me-1"></i> {{ post.author.username }}
+                        </span>
+                        <span>•</span>
+                        <span>{{ post.created_at|date:"M d, Y" }}</span>
+                    </div>
+
+                    <h3 class="post-title">{{ post.title }}</h3>
+
+                    <p class="post-excerpt">
+                        {{ post.content|truncatewords:30 }}
+                    </p>
+
+                    <a href="{% url 'post_detail' post.pk %}" class="btn-read">
+                        Read Full Article <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state animate__animated animate__zoomIn">
+            <div class="mb-4">
+                <i class="fa-solid fa-folder-open text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h3 class="fw-bold">No posts yet!</h3>
+            <p class="text-muted">Stay tuned, amazing content is on its way.</p>
+            {% if user.is_staff %}
+                <a href="/admin" class="btn btn-primary px-4 py-2 mt-2" style="border-radius: 10px;">
+                    <i class="fa-solid fa-plus-circle me-2"></i>Create First Post
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

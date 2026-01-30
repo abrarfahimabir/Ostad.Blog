@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account | Ostad Blog{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --reg-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        --input-border: #e2e8f0;
+    }
+
+    /* Layout Section - কার্ডটিকে স্ক্রিনের একদম মাঝখানে রাখবে */
+    .register-container {
+        min-height: 75vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+    }
+
+    /* Compact Glass Card - প্যাডিং এবং গ্যাপ কমানো হয়েছে */
+    .register-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 1.25rem;
+        padding: 1.5rem; /* Reduced Padding */
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px; /* More Compact Width */
+    }
+
+    /* Smaller Icon Box */
+    .brand-icon-box {
+        width: 45px; /* Reduced Size */
+        height: 45px;
+        background: var(--reg-gradient);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        color: white;
+        font-size: 1.1rem;
+    }
+
+    .register-card h4 {
+        color: #1e293b;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    /* Django Form Field Gap Reduction */
+    .register-body p {
+        margin-bottom: 0.6rem !important; /* Minimal gap between input groups */
+    }
+
+    .register-body label {
+        display: block;
+        font-weight: 700;
+        font-size: 0.7rem; /* Tiny Labels */
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+        margin-left: 2px;
+    }
+
+    .register-body input {
+        width: 100%;
+        padding: 0.55rem 0.8rem; /* Compact inputs */
+        border: 1.5px solid var(--input-border);
+        border-radius: 0.6rem;
+        background-color: #f8fafc;
+        font-size: 0.9rem;
+        transition: 0.3s;
+    }
+
+    .register-body input:focus {
+        background-color: #fff;
+        border-color: #4f46e5;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Compact Submit Button */
+    .btn-reg-submit {
+        background: var(--reg-gradient);
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 0.7rem;
+        border-radius: 0.6rem;
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-top: 8px;
+        transition: 0.3s;
+    }
+
+    .btn-reg-submit:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 15px rgba(79, 70, 229, 0.2);
+        color: white;
+    }
+
+    /* Redirect Link Area */
+    .card-footer-links {
+        margin-top: 1rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid #f1f5f9;
+        text-align: center;
+    }
+
+    .card-footer-links a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 700;
+    }
+</style>
+
+<div class="register-container">
+    <div class="register-card animate__animated animate__fadeIn">
+        <div class="brand-icon-box">
+            <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <div class="text-center mb-3">
+            <h4 class="fw-bold">Join Community</h4>
+            <p class="text-muted small">Create your account to start blogging</p>
+        </div>
+
+        <div class="register-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-fields-wrapper">
+                    {{ form.as_p }}
+                </div>
+                <button type="submit" class="btn btn-reg-submit">
+                    SIGN UP <i class="fa-solid fa-arrow-right ms-1"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="card-footer-links">
+            <p class="text-muted small mb-0">
+                Already have an account? <a href="{% url 'login' %}">Login here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.register-body input');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+            const label = input.parentElement.querySelector('label');
+            if (label) {
+                input.placeholder = "Enter " + label.innerText.replace(':', '');
+            }
+        });
+    });
+</script>
+{% endblock %}

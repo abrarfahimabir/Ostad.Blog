@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} | Ostad Blog{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    .article-container {
+        max-width: 850px;
+        margin: 0 auto;
+        background: white;
+        padding: 3rem;
+        border-radius: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Header Styling */
+    .article-header {
+        margin-bottom: 2.5rem;
+        text-align: center;
+    }
+
+    .article-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        letter-spacing: -1px;
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        color: #64748b;
+        font-size: 1rem;
+    }
+
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #4f46e5;
+    }
+
+    /* Content Body */
+    .article-content {
+        font-size: 1.2rem;
+        line-height: 1.9;
+        color: #334155;
+        text-align: justify;
+    }
+
+    .article-content p {
+        margin-bottom: 1.5rem;
+    }
+
+    /* Admin Actions */
+    .admin-actions {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-top: 3rem;
+    }
+
+    .btn-edit-modern {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn-edit-modern:hover {
+        background: #d97706;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete-modern {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .btn-delete-modern:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+    }
+
+    /* Navigation */
+    .back-nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .back-nav:hover {
+        color: #4f46e5;
+        transform: translateX(-5px);
+    }
+
+    @media (max-width: 768px) {
+        .article-container { padding: 1.5rem; }
+        .article-title { font-size: 2rem; }
+    }
+    /* SweetAlert Responsive Fix */
+.swal2-actions {
+    gap: 10px;
+}
+
+@media (max-width: 480px) {
+    .swal2-popup {
+        padding: 1rem !important;
+    }
+    .swal2-title {
+        font-size: 1.25rem !important;
+    }
+    .swal2-actions {
+        flex-direction: column-reverse; /* মোবাইলে ডিলিট বাটন উপরে আসবে */
+        width: 100%;
+    }
+    .swal2-actions button {
+        width: 100% !important;
+        margin: 5px 0 !important;
+    }
+}
+</style>
+
+<div class="container py-4">
+    <a href="{% url 'home' %}" class="back-nav animate__animated animate__fadeInLeft">
+        <i class="fa-solid fa-arrow-left"></i> Back to Feed
+    </a>
+
+    <article class="article-container animate__animated animate__fadeIn">
+        <header class="article-header">
+            <h1 class="article-title">{{ post.title }}</h1>
+            <div class="article-meta">
+                <span class="author-info">
+                    <i class="fa-solid fa-circle-user"></i> {{ post.author.username }}
+                </span>
+                <span>•</span>
+                <span><i class="fa-regular fa-calendar-check me-1"></i> {{ post.created_at|date:"F d, Y" }}</span>
+            </div>
+        </header>
+
+        <div class="article-content">
+            {{ post.content|linebreaks }}
+        </div>
+
+        {% if post.author == user %}
+            <div class="admin-actions">
+                <span class="me-auto text-muted small"><i class="fa-solid fa-shield-halved"></i> Author Tools:</span>
+                
+                <a href="{% url 'post_edit' post.pk %}" class="btn-edit-modern">
+                    <i class="fa-regular fa-pen-to-square me-1"></i> Edit
+                </a>
+
+                <button type="button" class="btn-delete-modern detail-delete-btn">
+                    <i class="fa-regular fa-trash-can me-1"></i> Delete
+                </button>
+
+                <form id="delete-form-detail" action="{% url 'post_delete' post.pk %}" method="post" style="display:none;">
+                    {% csrf_token %}
+                </form>
+            </div>
+        {% endif %}
+    </article>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% endblock %}

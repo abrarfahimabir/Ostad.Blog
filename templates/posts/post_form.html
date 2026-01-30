@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Write Post | Ostad Blog{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    .editor-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding-bottom: 50px;
+    }
+
+    .editor-card {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid #e2e8f0;
+        padding: 2.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Form Header */
+    .editor-header {
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 1rem;
+    }
+
+    .editor-title {
+        font-weight: 800;
+        color: #0f172a;
+        font-size: 1.75rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Styling Django Form Fields */
+    .form-group-wrapper p {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .form-group-wrapper label {
+        display: block;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group-wrapper input, 
+    .form-group-wrapper textarea {
+        width: 100%;
+        padding: 0.8rem 1.2rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.75rem;
+        background-color: #f8fafc;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group-wrapper input:focus, 
+    .form-group-wrapper textarea:focus {
+        background-color: white;
+        border-color: #4f46e5;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-group-wrapper textarea {
+        min-height: 250px;
+        resize: vertical;
+    }
+
+    /* Submit Button */
+    .btn-publish {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.3s;
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-publish:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4);
+        color: white;
+    }
+
+    .cancel-link {
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .cancel-link:hover {
+        color: #ef4444;
+    }
+</style>
+
+<div class="editor-container">
+    <div class="mb-4">
+        <a href="javascript:history.back()" class="cancel-link">
+            <i class="fa-solid fa-chevron-left me-1"></i> Discard Changes
+        </a>
+    </div>
+
+    <div class="editor-card animate__animated animate__fadeIn">
+        <div class="editor-header">
+            <h2 class="editor-title">
+                <i class="fa-solid fa-pen-nib text-primary"></i> 
+                {% if form.instance.pk %}Edit Your Post{% else %}Create New Post{% endif %}
+            </h2>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group-wrapper">
+                {{ form.as_p }}
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mt-4">
+                <button type="submit" class="btn-publish">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Publish Story
+                </button>
+                <span class="text-muted small d-none d-md-inline">
+                    <i class="fa-solid fa-circle-info me-1"></i> Your story will be visible to everyone.
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Automatically adding modern styling classes to Django-generated fields
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.form-group-wrapper input, .form-group-wrapper textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+            
+            // Add custom placeholders based on labels
+            const label = input.parentElement.querySelector('label');
+            if (label) {
+                if (input.tagName.toLowerCase() === 'textarea') {
+                    input.placeholder = "Write your thoughts here...";
+                } else {
+                    input.placeholder = "Enter " + label.innerText.replace(':', '');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard | Ostad Blog{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .dashboard-title {
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    /* Manage Post Card */
+    .manage-post-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        transition: 0.3s;
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .manage-post-card:hover {
+        border-color: #6366f1;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .post-status {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #10b981;
+        background: #ecfdf5;
+        padding: 2px 8px;
+        border-radius: 5px;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+
+    .manage-post-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 8px;
+        text-decoration: none;
+    }
+
+    .manage-post-title:hover {
+        color: #4f46e5;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    /* Modern Action Buttons */
+    .btn-action {
+        padding: 6px 15px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: 0.3s;
+    }
+
+    .btn-view { background: #f1f5f9; color: #475569; }
+    .btn-view:hover { background: #e2e8f0; }
+
+    .btn-edit { background: #fef3c7; color: #d97706; }
+    .btn-edit:hover { background: #fde68a; }
+
+    .btn-delete { background: #fee2e2; color: #ef4444; border: none; }
+    .btn-delete:hover { background: #fecaca; }
+
+    /* Empty State */
+    .empty-dashboard {
+        text-align: center;
+        padding: 50px;
+        background: white;
+        border-radius: 1.5rem;
+        border: 2px dashed #cbd5e1;
+    }
+</style>
+
+<div class="container animate__animated animate__fadeIn">
+    
+    <div class="dashboard-header">
+        <div>
+            <h2 class="dashboard-title">My Published Posts</h2>
+            <p class="text-muted small mb-0">You have published {{ posts|length }} articles</p>
+        </div>
+        <a href="{% url 'post_create' %}" class="btn btn-primary" style="border-radius: 10px; font-weight: 600;">
+            <i class="fa-solid fa-plus me-1"></i> Write New Post
+        </a>
+    </div>
+
+    <hr class="mb-4" style="opacity: 0.1;">
+
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            {% if posts %}
+                {% for post in posts %}
+                    <div class="manage-post-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="post-status">Published</span>
+                                <a href="{% url 'post_detail' post.pk %}" class="manage-post-title d-block">
+                                    {{ post.title }}
+                                </a>
+                                <span class="text-muted small">
+                                    <i class="fa-regular fa-calendar me-1"></i> {{ post.created_at|date:"M d, Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted small mt-2 mb-0">
+                            {{ post.content|truncatewords:25 }}
+                        </p>
+
+                        <div class="action-group">
+                            <a href="{% url 'post_detail' post.pk %}" class="btn-action btn-view">
+                                <i class="fa-regular fa-eye"></i> View
+                            </a>
+                            <a href="{% url 'post_edit' post.pk %}" class="btn-action btn-edit">
+                                <i class="fa-regular fa-pen-to-square"></i> Edit
+                            </a>
+                            <button type="button" class="btn-action btn-delete delete-btn" data-id="{{ post.pk }}">
+                            <i class="fa-regular fa-trash-can"></i> Delete
+                            </button>
+                            <form id="delete-form-{{ post.pk }}" action="{% url 'post_delete' post.pk %}" method="post" style="display:none;">
+                            {% csrf_token %}
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-dashboard">
+                    <i class="fa-solid fa-pen-nib text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                    <h4 class="fw-bold">No posts yet</h4>
+                    <p class="text-muted">You haven't written anything yet. Start your journey today!</p>
+                    <a href="{% url 'post_create' %}" class="btn btn-outline-primary mt-2">Write Your First Post</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
