@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.hashers import check_password
 from django.contrib import messages
 from .models import Post
-from .forms import PostForm, UserProfileForm # Eita banate hobe 'posts/forms.py' te
+from .forms import PostForm, UserProfileForm
 
 # 1. Home View: Sob blog post eksathe dekhar jonno
 def home(request):
@@ -69,32 +69,13 @@ def post_delete(request, pk):
     # Check: Author chara keu delete korte parbe na
     if post.author == request.user:
         post.delete()
-    
+        messages.success(request, 'আপনার পোস্টটি সফলভাবে ডিলিট হয়েছে।')
     return redirect('home')
 
 @login_required
 def my_posts(request):
-    # Shudhu logged in user-er post gulo filter kora hocche
     user_posts = Post.objects.filter(author=request.user).order_by('-created_at')
     return render(request, 'posts/my_posts.html', {'posts': user_posts})
-
-from django.shortcuts import render, get_object_or_404
-from .models import Post
-
-def post_detail(request, pk):
-    # pk (Primary Key) diye database theke specific post ta khuje ber kora hocche
-    post = get_object_or_404(Post, pk=pk)
-    return render(request, 'posts/post_detail.html', {'post': post})
-
-from django.contrib import messages
-
-@login_required
-def post_delete(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    if post.author == request.user:
-        post.delete()
-        messages.success(request, 'আপনার পোস্টটি সফলভাবে ডিলিট হয়েছে।')
-    return redirect('my_posts')
 
 @login_required
 def profile(request):
@@ -107,19 +88,23 @@ def profile(request):
                 messages.success(request, 'Profile updated successfully!')
                 return redirect('profile')
         elif 'change_password' in request.POST:
-            password_form = PasswordChangeForm(user, request.POST)
-            if password_form.is_valid():
-                password_form.save()
-                messages.success(request, 'Password changed successfully! Please log in again.')
-                return redirect('login')
-        else:
-            profile_form = UserProfileForm(instance=user)
-            password_form = PasswordChangeForm(user)
+            old_password = request.POST.get('old_password')
+            new_password1 = request.POST.get('new_password1')
+            new_password2 = request.POST.get('new_password2')
+
+            if not check_password(old_password, user.password):
+                messages.error(request, 'Current password is incorrect.')
+            elif new_password1 != new_password2:
+                messages.error(request, 'New passwords do not match.')
+            elif len(new_password1) < 8:
+                messages.error(request, 'Password must be at least 8 characters long.')
+            else:
+                user.set_password(new_password1)
+                user.save()
+                update_session_auth_hash(request, user)  # Keep user logged in
+                messages.success(request, 'Password changed successfully!')
+                return redirect('profile')
     else:
         profile_form = UserProfileForm(instance=user)
-        password_form = PasswordChangeForm(user)
-    
-    return render(request, 'posts/profile.html', {
-        'profile_form': profile_form,
-        'password_form': password_form,
-    })
+
+    return render(request, 'posts/profile.html', {'profile_form': profile_form})

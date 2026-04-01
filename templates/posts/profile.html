@@ -178,27 +178,32 @@
 
             <div class="form-section">
                 <h5><i class="fa-solid fa-lock me-2"></i>Change Password</h5>
-                <form method="post">
+                <form method="post" id="changePasswordForm">
                     {% csrf_token %}
                     <div class="password-field-wrapper">
-                        {{ password_form.old_password }}
+                        <input type="password" name="old_password" id="id_old_password" class="form-control" placeholder="Current Password" required>
                         <button type="button" class="toggle-password" onclick="togglePassword('id_old_password')">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
+
                     <div class="password-field-wrapper">
-                        {{ password_form.new_password1 }}
+                        <input type="password" name="new_password1" id="id_new_password1" class="form-control" placeholder="New Password" required>
                         <button type="button" class="toggle-password" onclick="togglePassword('id_new_password1')">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
+
                     <div class="password-field-wrapper">
-                        {{ password_form.new_password2 }}
+                        <input type="password" name="new_password2" id="id_new_password2" class="form-control" placeholder="Confirm New Password" required>
                         <button type="button" class="toggle-password" onclick="togglePassword('id_new_password2')">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
-                    <button type="submit" name="change_password" class="btn btn-update">
+
+                    <p id="password-match-indicator" class="small mb-2"></p>
+
+                    <button type="submit" name="change_password" id="changePasswordBtn" class="btn btn-update" disabled>
                         <i class="fa-solid fa-key me-2"></i>Change Password
                     </button>
                 </form>
@@ -226,6 +231,50 @@
         inputs.forEach(input => {
             input.classList.add('form-control');
         });
+
+        const password1 = document.getElementById('id_new_password1');
+        const password2 = document.getElementById('id_new_password2');
+        const matchIndicator = document.getElementById('password-match-indicator');
+        const changeBtn = document.getElementById('changePasswordBtn');
+
+        function updateMatchStatus() {
+            if (!password1.value || !password2.value) {
+                matchIndicator.textContent = 'Please fill both New Password fields.';
+                matchIndicator.className = 'text-muted';
+                changeBtn.disabled = true;
+                return;
+            }
+
+            if (password1.value === password2.value) {
+                matchIndicator.textContent = 'New password and confirmation Matched';
+                matchIndicator.className = 'text-success';
+                changeBtn.disabled = false;
+            } else {
+                matchIndicator.textContent = 'New password and confirmation Did not matched';
+                matchIndicator.className = 'text-danger';
+                changeBtn.disabled = true;
+            }
+        }
+
+        password1.addEventListener('input', updateMatchStatus);
+        password2.addEventListener('input', updateMatchStatus);
+
+        // Initial status update
+        updateMatchStatus();
+
+        // Show sweet alert when password changed successfully
+        {% for message in messages %}
+            {% if 'Password changed successfully' in message %}
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Password Updated',
+                    text: '{{ message }}',
+                    timer: 2200,
+                    showConfirmButton: false,
+                });
+            {% endif %}
+        {% endfor %}
+
     });
 </script>
 {% endblock %}
