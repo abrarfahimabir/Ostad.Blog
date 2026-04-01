@@ -267,10 +267,36 @@
             {% if 'Password changed successfully' in message %}
                 Swal.fire({
                     icon: 'success',
-                    title: 'Password Updated',
-                    text: '{{ message }}',
-                    timer: 2200,
-                    showConfirmButton: false,
+                    title: '<strong>Password Updated Successfully!</strong>',
+                    html: '<p style="font-size: 0.95rem; color: #64748b; margin: 0.5rem 0;">Your password has been changed and your session is active.</p>',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: true,
+                    confirmButtonColor: '#4f46e5',
+                    confirmButtonText: 'Got it!',
+                    allowOutsideClick: false,
+                    allowEscapeKey: true,
+                    backdrop: 'rgba(0, 0, 0, 0.4)',
+                    width: '90%',
+                    maxWidth: '500px',
+                    padding: '2rem',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg border-0',
+                        title: 'fw-bold text-dark fs-5',
+                        htmlContainer: 'text-muted',
+                        confirmButton: 'btn btn-success rounded-3 px-4 fw-600',
+                        timerProgressBar: 'swal-progress-bar'
+                    },
+                    showClass: {
+                        popup: 'animate__animated animate__zoomIn animate__faster'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOut animate__faster'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        location.reload();
+                    }
                 });
             {% endif %}
         {% endfor %}
