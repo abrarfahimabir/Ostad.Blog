@@ -194,6 +194,7 @@
                       <i class="fa-solid fa-circle-user text-primary"></i> {{ user.username }}
                     </span>
                     <ul class="dropdown-menu">
+                      <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fa-solid fa-user me-2"></i> Profile</a></li>
                       <li>
                         <form action="{% url 'logout' %}" method="post" class="m-0">
                           {% csrf_token %}

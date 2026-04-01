@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile | {{ user.username }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --primary-color: #4f46e5;
+        --primary-hover: #4338ca;
+        --input-border: #e2e8f0;
+    }
+
+    .profile-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .profile-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 2rem;
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    .profile-card h3 {
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-card p {
+        color: #64748b;
+        margin-bottom: 0;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section h5 {
+        color: #1e293b;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 0.5rem;
+    }
+
+    .profile-body label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .profile-body input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1.5px solid var(--input-border);
+        border-radius: 0.5rem;
+        background-color: #f8fafc;
+        font-size: 1rem;
+        transition: 0.3s;
+        margin-bottom: 1rem;
+    }
+
+    .profile-body input:focus {
+        background-color: #fff;
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .password-field-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.2rem;
+    }
+
+    .btn-update {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-top: 1rem;
+        transition: 0.3s;
+    }
+
+    .btn-update:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(79, 70, 229, 0.2);
+        color: white;
+    }
+
+    .alert {
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-card animate__animated animate__fadeIn">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <h3>{{ user.username }}</h3>
+            <p>{{ user.email }}</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="profile-body">
+            <div class="form-section">
+                <h5><i class="fa-solid fa-user-edit me-2"></i>Update Profile</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ profile_form.as_p }}
+                    <button type="submit" name="update_profile" class="btn btn-update">
+                        <i class="fa-solid fa-save me-2"></i>Update Profile
+                    </button>
+                </form>
+            </div>
+
+            <div class="form-section">
+                <h5><i class="fa-solid fa-lock me-2"></i>Change Password</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="password-field-wrapper">
+                        {{ password_form.old_password }}
+                        <button type="button" class="toggle-password" onclick="togglePassword('id_old_password')">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-field-wrapper">
+                        {{ password_form.new_password1 }}
+                        <button type="button" class="toggle-password" onclick="togglePassword('id_new_password1')">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-field-wrapper">
+                        {{ password_form.new_password2 }}
+                        <button type="button" class="toggle-password" onclick="togglePassword('id_new_password2')">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    <button type="submit" name="change_password" class="btn btn-update">
+                        <i class="fa-solid fa-key me-2"></i>Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const button = field.parentElement.querySelector('.toggle-password i');
+        if (field.type === 'password') {
+            field.type = 'text';
+            button.className = 'fa-solid fa-eye-slash';
+        } else {
+            field.type = 'password';
+            button.className = 'fa-solid fa-eye';
+        }
+    }
+
+    // Add form-control class to inputs
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.profile-body input');
+        inputs.forEach(input => {
+            input.classList.add('form-control');
+        });
+    });
+</script>
+{% endblock %}

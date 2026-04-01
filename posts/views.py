@@ -2,8 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib import messages
 from .models import Post
-from .forms import PostForm # Eita banate hobe 'posts/forms.py' te
+from .forms import PostForm, UserProfileForm # Eita banate hobe 'posts/forms.py' te
 
 # 1. Home View: Sob blog post eksathe dekhar jonno
 def home(request):
@@ -93,3 +95,31 @@ def post_delete(request, pk):
         post.delete()
         messages.success(request, 'আপনার পোস্টটি সফলভাবে ডিলিট হয়েছে।')
     return redirect('my_posts')
+
+@login_required
+def profile(request):
+    user = request.user
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            profile_form = UserProfileForm(request.POST, instance=user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('profile')
+        elif 'change_password' in request.POST:
+            password_form = PasswordChangeForm(user, request.POST)
+            if password_form.is_valid():
+                password_form.save()
+                messages.success(request, 'Password changed successfully! Please log in again.')
+                return redirect('login')
+        else:
+            profile_form = UserProfileForm(instance=user)
+            password_form = PasswordChangeForm(user)
+    else:
+        profile_form = UserProfileForm(instance=user)
+        password_form = PasswordChangeForm(user)
+    
+    return render(request, 'posts/profile.html', {
+        'profile_form': profile_form,
+        'password_form': password_form,
+    })
