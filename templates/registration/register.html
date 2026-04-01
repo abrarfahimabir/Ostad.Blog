@@ -79,6 +79,23 @@
         transition: 0.3s;
     }
 
+    .register-body .password-field-wrapper {
+        position: relative;
+    }
+
+    .register-body .toggle-password {
+        position: absolute;
+        right: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 0.95rem;
+        cursor: pointer;
+        padding: 0.2rem;
+    }
+
     .register-body input:focus {
         background-color: #fff;
         border-color: #4f46e5;
@@ -154,12 +171,41 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const inputs = document.querySelectorAll('.register-body input');
+
         inputs.forEach(input => {
             input.classList.add('form-control');
             const label = input.parentElement.querySelector('label');
             if (label) {
                 input.placeholder = "Enter " + label.innerText.replace(':', '');
             }
+        });
+
+        const passwordFields = document.querySelectorAll('.register-body input[type="password"]');
+
+        passwordFields.forEach(field => {
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('password-field-wrapper');
+
+            field.parentNode.insertBefore(wrapper, field);
+            wrapper.appendChild(field);
+
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'toggle-password';
+            toggle.setAttribute('aria-label', 'Show/Hide password');
+            toggle.innerHTML = '<i class="fa-solid fa-eye"></i>';
+
+            toggle.addEventListener('click', function() {
+                if (field.type === 'password') {
+                    field.type = 'text';
+                    toggle.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                } else {
+                    field.type = 'password';
+                    toggle.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                }
+            });
+
+            wrapper.appendChild(toggle);
         });
     });
 </script>
