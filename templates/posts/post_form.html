@@ -329,28 +329,15 @@
                     {% endfor %}
                 </div>
 
-                <!-- User Selection for Specific Visibility -->
+                <!-- Allowed Users Input for Specific Visibility -->
                 <div class="user-selection-section" id="userSelectionSection">
                     <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #475569;">
-                        Search & Select Users
+                        Specific users (comma-separated usernames)
                     </label>
-                    <input type="text" class="user-search-input" id="userSearch" placeholder="Type username..." onkeyup="filterUsers()">
-                    
-                    <div class="user-list" id="userList">
-                        {% for user in form.allowed_users.field.queryset %}
-                            {% if user != form.instance.author %}
-                                <div class="user-item">
-                                    <input type="checkbox" name="allowed_users" value="{{ user.id }}" id="user_{{ user.id }}"
-                                           {% if user.id|stringformat:"s" in selected_user_ids %}checked{% endif %} onchange="updateSelectedUsers()">
-                                    <label for="user_{{ user.id }}" style="margin: 0; cursor: pointer; flex: 1; text-align: left;">
-                                        <i class="fa-solid fa-user-circle me-1"></i> {{ user.username }}
-                                    </label>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-
-                    <div class="user-selected-list" id="selectedUsersList"></div>
+                    {{ form.allowed_usernames }}
+                    <p class="small text-muted mt-2" id="allowedUsersHelp">
+                        Enter exact username(s). If a username does not exist, the form returns an error.
+                    </p>
                 </div>
             </div>
 
@@ -397,7 +384,7 @@
     function toggleUserSelection() {
         const visibility = document.querySelector('input[name="visibility"]:checked').value;
         const userSection = document.getElementById('userSelectionSection');
-        
+
         if (visibility === 'specific') {
             userSection.classList.add('active');
         } else {
@@ -410,53 +397,39 @@
     function updateVisibilityText() {
         const visibility = document.querySelector('input[name="visibility"]:checked').value;
         const textEl = document.getElementById('visibilityText');
-        
+
         if (visibility === 'private') {
             textEl.innerHTML = '<i class="fa-solid fa-lock me-1"></i> Only you can see this post.';
         } else if (visibility === 'specific') {
-            const selected = document.querySelectorAll('input[name="allowed_users"]:checked').length;
-            textEl.innerHTML = `<i class="fa-solid fa-user-group me-1"></i> Visible to ${selected} selected user(s).`;
+            const raw = document.querySelector('input[name="allowed_usernames"]').value;
+            const list = raw.split(',').map(s => s.trim()).filter(Boolean);
+            textEl.innerHTML = `<i class="fa-solid fa-user-group me-1"></i> Visible to ${list.length} specified user(s).`;
         } else {
             textEl.innerHTML = '<i class="fa-solid fa-globe me-1"></i> Your story will be visible to everyone.';
         }
     }
-
-    function filterUsers() {
-        const searchValue = document.getElementById('userSearch').value.toLowerCase();
-        const userItems = document.querySelectorAll('.user-item');
-
-        userItems.forEach(item => {
-            const username = item.querySelector('label').textContent.toLowerCase();
-            if (username.includes(searchValue)) {
-                item.style.display = 'flex';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    }
-
-    function updateSelectedUsers() {
-        const selectedList = document.getElementById('selectedUsersList');
-        selectedList.innerHTML = '';
-
-        const checked = document.querySelectorAll('input[name="allowed_users"]:checked');
-        checked.forEach(checkbox => {
-            const username = checkbox.nextElementSibling.textContent.trim().replace(/^\d+/, '').trim();
-            const userId = checkbox.value;
-            
-            const badge = document.createElement('span');
-            badge.className = 'user-badge';
-            badge.innerHTML = `${username} <span class="remove-user" onclick="removeUser(${userId})">&times;</span>`;
-            selectedList.appendChild(badge);
-        });
-
-        updateVisibilityText();
-    }
-
-    function removeUser(userId) {
-        const checkbox = document.querySelector(`input[value="${userId}"]`);
-        checkbox.checked = false;
-        updateSelectedUsers();
-    }
 </script>
+{% if form.errors %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fullErrors = [];
+        {% for field, errs in form.errors.items %}
+            {% for err in errs %}
+                fullErrors.push(`{{ err|escapejs }}`);
+            {% endfor %}
+        {% endfor %}
+
+        if(fullErrors.length){
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid input',
+                html: fullErrors.join('<br>'),
+                confirmButtonColor: '#4f46e5',
+                background: '#ffffff',
+                color: '#111827'
+            });
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

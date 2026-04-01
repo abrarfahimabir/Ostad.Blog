@@ -53,29 +53,25 @@ def post_detail(request, pk):
 # 4. Create Post View: Login kora user-ra post likhte parbe
 @login_required
 def post_create(request):
-    selected_user_ids = []
     if request.method == "POST":
         form = PostForm(request.POST)
-        selected_user_ids = [str(uid) for uid in request.POST.getlist('allowed_users')]
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
             post.save()
-            
-            # Handle allowed_users for specific visibility
+
             if post.visibility == 'specific':
-                allowed_users = form.cleaned_data.get('allowed_users', [])
+                allowed_users = form.cleaned_data.get('allowed_user_objects', [])
                 post.allowed_users.set(allowed_users)
             else:
                 post.allowed_users.clear()
-            
+
             return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm()
 
     return render(request, 'posts/post_form.html', {
         'form': form,
-        'selected_user_ids': selected_user_ids,
     })
 
 # 5. Update Post View: Shudhu author nijei edit korte parbe
@@ -86,30 +82,26 @@ def post_edit(request, pk):
     # Check: Onno keu jeno edit korte na pare
     if post.author != request.user:
         return redirect('home')
-    
-    selected_user_ids = []
+
     if request.method == "POST":
         form = PostForm(request.POST, instance=post)
-        selected_user_ids = [str(uid) for uid in request.POST.getlist('allowed_users')]
         if form.is_valid():
             post = form.save(commit=False)
             post.save()
-            
-            # Handle allowed_users for specific visibility
+
             if post.visibility == 'specific':
-                allowed_users = form.cleaned_data.get('allowed_users', [])
+                allowed_users = form.cleaned_data.get('allowed_user_objects', [])
                 post.allowed_users.set(allowed_users)
             else:
                 post.allowed_users.clear()
-            
+
             return redirect('post_detail', pk=post.pk)
     else:
-        form = PostForm(instance=post)
-        selected_user_ids = [str(uid) for uid in post.allowed_users.values_list('id', flat=True)]
+        existing_usernames = ', '.join(post.allowed_users.values_list('username', flat=True))
+        form = PostForm(instance=post, initial={'allowed_usernames': existing_usernames})
 
     return render(request, 'posts/post_form.html', {
         'form': form,
-        'selected_user_ids': selected_user_ids,
     })
 
 # 6. Delete Post View: Author nijei delete korte parbe
