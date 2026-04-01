@@ -163,6 +163,68 @@
 
       .my-portfolio-link:hover { color: #818cf8; border-bottom-color: #818cf8; }
       .fa-heart { color: #ef4444; }
+
+      /* Go To Top Button - Liquid Glass */
+      .go-top-btn {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.55);
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 8px 20px rgba(15,23,42,0.35);
+        cursor: pointer;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 2000;
+        display: grid;
+        place-items: center;
+      }
+
+      .go-top-btn.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .go-top-btn:hover {
+        transform: translateY(-4px) scale(1.06);
+      }
+
+      .go-top-inner {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(220,230,255,0.35));
+        border: 1px solid rgba(255,255,255,0.9);
+        display: grid;
+        place-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .go-top-inner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(79, 70, 229, 0.3);
+        transform-origin: bottom center;
+        transform: scaleY(var(--liquid-fill, 0));
+        transition: transform 0.25s ease;
+        pointer-events: none;
+      }
+
+      .go-top-inner .arrow {
+        color: #1e293b;
+        font-size: 1rem;
+        position: relative;
+        z-index: 1;
+      }
     </style>
   </head>
   <body>
@@ -239,7 +301,11 @@
         </div>
       </div>
     </footer>
-<script>
+    <button class="go-top-btn" id="goTopBtn" aria-label="Go to top">
+      <div class="go-top-inner" id="goTopInner">
+        <i class="fa-solid fa-angle-up arrow"></i>
+      </div>
+    </button><script>
     const triggerDelete = (formId) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -292,6 +358,35 @@
     <script>
       // Automatic Year Update
       document.getElementById("year").textContent = new Date().getFullYear();
+
+      const goTopBtn = document.getElementById('goTopBtn');
+      const goTopInner = document.getElementById('goTopInner');
+      const scrollThreshold = 240;
+
+      window.addEventListener('scroll', function() {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? Math.min(1, scrollY / docHeight) : 0;
+
+        if (scrollY > scrollThreshold) {
+          goTopBtn.classList.add('visible');
+        } else {
+          goTopBtn.classList.remove('visible');
+        }
+
+        const scale = 1 + progress * 0.45;
+        goTopInner.style.transform = `scale(${scale})`;
+        goTopInner.style.boxShadow = `0 0 18px rgba(79, 70, 229, ${0.25 + progress * 0.6})`;
+        goTopInner.style.setProperty('--liquid-fill', progress);
+
+        const arrow = goTopInner.querySelector('.arrow');
+        arrow.style.opacity = `${0.4 + progress * 0.6}`;
+        arrow.style.filter = `drop-shadow(0 0 5px rgba(0,0,0,${0.15 + progress * 0.2}))`;
+      });
+
+      goTopBtn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </body>
