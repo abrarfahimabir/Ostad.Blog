@@ -39,15 +39,33 @@
     }
 
     .post-status {
-        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
-        color: #10b981;
-        background: #ecfdf5;
-        padding: 2px 8px;
-        border-radius: 5px;
-        display: inline-block;
+        padding: 0.2rem 0.7rem;
+        border-radius: 999px;
         margin-bottom: 10px;
+    }
+
+    .post-status.published {
+        background: #dcfce7;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+    }
+
+    .post-status.specific {
+        background: #e0e7ff;
+        color: #3730a3;
+        border: 1px solid #c7d2fe;
+    }
+
+    .post-status.private {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
     }
 
     .manage-post-title {
@@ -123,7 +141,13 @@
                     <div class="manage-post-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <span class="post-status">Published</span>
+                                {% if post.visibility == 'public' %}
+                                    <span class="post-status published"><i class="fa-solid fa-circle-check"></i> Published</span>
+                                {% elif post.visibility == 'specific' %}
+                                    <span class="post-status specific"><i class="fa-solid fa-users"></i> Specific</span>
+                                {% else %}
+                                    <span class="post-status private"><i class="fa-solid fa-lock"></i> Only Me</span>
+                                {% endif %}
                                 <a href="{% url 'post_detail' post.pk %}" class="manage-post-title d-block">
                                     {{ post.title }}
                                 </a>
