@@ -241,6 +241,36 @@
     }
 
     .user-badge .remove-user {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 1.1rem;
+        height: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 920px) {
+        .editor-card { padding: 2rem; }
+        .visibility-options { grid-template-columns: 1fr; }
+        .visibility-option { padding: 1rem; }
+        .user-list { max-height: 240px; }
+    }
+
+    @media (max-width: 640px) {
+        .editor-container { padding: 0 15px 35px; }
+        .editor-card { border-radius: 1.2rem; padding: 1.5rem; }
+        .editor-title { font-size: 1.4rem; }
+        .btn-publish { width: 100%; justify-content: center; }
+        .user-list { max-height: 220px; }
+    }
+
+    @media (min-width: 1025px) {
+        .editor-container { max-width: 900px; }
+        .editor-card { padding: 3rem; }
+    }
+
+    .user-badge .remove-user {
         cursor: pointer;
         font-weight: bold;
     }
@@ -307,7 +337,7 @@
                             {% if user != form.instance.author %}
                                 <div class="user-item">
                                     <input type="checkbox" name="allowed_users" value="{{ user.id }}" id="user_{{ user.id }}"
-                                           {% if user in form.allowed_users.value %}checked{% endif %} onchange="updateSelectedUsers()">
+                                           {% if user.id|stringformat:"s" in selected_user_ids %}checked{% endif %} onchange="updateSelectedUsers()">
                                     <label for="user_{{ user.id }}" style="margin: 0; cursor: pointer; flex: 1; text-align: left;">
                                         <i class="fa-solid fa-user-circle me-1"></i> {{ user.username }}
                                     </label>

@@ -53,8 +53,10 @@ def post_detail(request, pk):
 # 4. Create Post View: Login kora user-ra post likhte parbe
 @login_required
 def post_create(request):
+    selected_user_ids = []
     if request.method == "POST":
         form = PostForm(request.POST)
+        selected_user_ids = request.POST.getlist('allowed_users')
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -64,11 +66,16 @@ def post_create(request):
             if post.visibility == 'specific':
                 allowed_users = form.cleaned_data.get('allowed_users', [])
                 post.allowed_users.set(allowed_users)
+            else:
+                post.allowed_users.clear()
             
             return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm()
-    return render(request, 'posts/post_form.html', {'form': form})
+    return render(request, 'posts/post_form.html', {
+        'form': form,
+        'selected_user_ids': selected_user_ids,
+    })
 
 # 5. Update Post View: Shudhu author nijei edit korte parbe
 @login_required
@@ -79,8 +86,10 @@ def post_edit(request, pk):
     if post.author != request.user:
         return redirect('home')
     
+    selected_user_ids = []
     if request.method == "POST":
         form = PostForm(request.POST, instance=post)
+        selected_user_ids = request.POST.getlist('allowed_users')
         if form.is_valid():
             post = form.save(commit=False)
             post.save()
@@ -95,7 +104,12 @@ def post_edit(request, pk):
             return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm(instance=post)
-    return render(request, 'posts/post_form.html', {'form': form})
+        selected_user_ids = list(post.allowed_users.values_list('id', flat=True))
+
+    return render(request, 'posts/post_form.html', {
+        'form': form,
+        'selected_user_ids': selected_user_ids,
+    })
 
 # 6. Delete Post View: Author nijei delete korte parbe
 @login_required
