@@ -10,7 +10,18 @@ from .forms import PostForm, UserProfileForm
 # 1. Home View: Sob blog post eksathe dekhar jonno
 def home(request):
     posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'posts/home.html', {'posts': posts})
+    
+    # Filter posts based on visibility
+    readable_posts = []
+    for post in posts:
+        if request.user.is_authenticated:
+            if post.is_readable_by(request.user):
+                readable_posts.append(post)
+        else:
+            if post.visibility == 'public':
+                readable_posts.append(post)
+    
+    return render(request, 'posts/home.html', {'posts': readable_posts})
 
 # 2. Register View: Notun user account kholar jonno
 def register(request):
@@ -27,6 +38,16 @@ def register(request):
 # 3. Post Detail View: Ekta specific blog purota porar jonno
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
+    
+    # Check visibility permissions
+    if not request.user.is_authenticated:
+        if post.visibility != 'public':
+            return redirect('login')
+    else:
+        if not post.is_readable_by(request.user):
+            messages.error(request, 'You do not have permission to view this post.')
+            return redirect('home')
+    
     return render(request, 'posts/post_detail.html', {'post': post})
 
 # 4. Create Post View: Login kora user-ra post likhte parbe
@@ -36,8 +57,14 @@ def post_create(request):
         form = PostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
-            post.author = request.user # Je login ache shei hobe author
+            post.author = request.user
             post.save()
+            
+            # Handle allowed_users for specific visibility
+            if post.visibility == 'specific':
+                allowed_users = form.cleaned_data.get('allowed_users', [])
+                post.allowed_users.set(allowed_users)
+            
             return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm()
@@ -55,7 +82,16 @@ def post_edit(request, pk):
     if request.method == "POST":
         form = PostForm(request.POST, instance=post)
         if form.is_valid():
-            form.save()
+            post = form.save(commit=False)
+            post.save()
+            
+            # Handle allowed_users for specific visibility
+            if post.visibility == 'specific':
+                allowed_users = form.cleaned_data.get('allowed_users', [])
+                post.allowed_users.set(allowed_users)
+            else:
+                post.allowed_users.clear()
+            
             return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm(instance=post)

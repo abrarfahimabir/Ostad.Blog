@@ -107,6 +107,143 @@
     .cancel-link:hover {
         color: #ef4444;
     }
+
+    /* Visibility Section */
+    .visibility-section {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .visibility-title {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 1rem;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .visibility-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .visibility-option {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .visibility-option input[type="radio"] {
+        display: none;
+    }
+
+    .visibility-option input[type="radio"]:checked + label {
+        color: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .visibility-option:has(input[type="radio"]:checked) {
+        border-color: #4f46e5;
+        background: rgba(79, 70, 229, 0.05);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    }
+
+    .visibility-option label {
+        margin: 0;
+        cursor: pointer;
+        font-weight: 600;
+        color: #475569;
+        display: block;
+        font-size: 0.95rem;
+    }
+
+    .visibility-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* User Selection */
+    .user-selection-section {
+        display: none;
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .user-selection-section.active {
+        display: block;
+    }
+
+    .user-search-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .user-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .user-item:hover {
+        background: #f1f5f9;
+    }
+
+    .user-item input[type="checkbox"] {
+        margin-right: 0.75rem;
+        cursor: pointer;
+    }
+
+    .user-selected-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .user-badge {
+        background: #4f46e5;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .user-badge .remove-user {
+        cursor: pointer;
+        font-weight: bold;
+    }
 </style>
 
 <div class="editor-container">
@@ -127,14 +264,67 @@
         <form method="post">
             {% csrf_token %}
             <div class="form-group-wrapper">
-                {{ form.as_p }}
+                {{ form.title }}
+                {{ form.content }}
+            </div>
+
+            <!-- Visibility Section -->
+            <div class="visibility-section">
+                <div class="visibility-title">
+                    <i class="fa-solid fa-lock-open"></i> Who can see this post?
+                </div>
+
+                <div class="visibility-options">
+                    {% for value, label in form.visibility.field.choices %}
+                        <div class="visibility-option">
+                            <input type="radio" name="visibility" value="{{ value }}" id="id_visibility_{{ value }}" 
+                                   {% if form.visibility.value == value %}checked{% endif %} onchange="toggleUserSelection()">
+                            <label for="id_visibility_{{ value }}">
+                                <div class="visibility-icon">
+                                    {% if value == 'private' %}
+                                        <i class="fa-solid fa-lock"></i>
+                                    {% elif value == 'specific' %}
+                                        <i class="fa-solid fa-user-group"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-globe"></i>
+                                    {% endif %}
+                                </div>
+                                {{ label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- User Selection for Specific Visibility -->
+                <div class="user-selection-section" id="userSelectionSection">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #475569;">
+                        Search & Select Users
+                    </label>
+                    <input type="text" class="user-search-input" id="userSearch" placeholder="Type username..." onkeyup="filterUsers()">
+                    
+                    <div class="user-list" id="userList">
+                        {% for user in form.allowed_users.field.queryset %}
+                            {% if user != form.instance.author %}
+                                <div class="user-item">
+                                    <input type="checkbox" name="allowed_users" value="{{ user.id }}" id="user_{{ user.id }}"
+                                           {% if user in form.allowed_users.value %}checked{% endif %} onchange="updateSelectedUsers()">
+                                    <label for="user_{{ user.id }}" style="margin: 0; cursor: pointer; flex: 1; text-align: left;">
+                                        <i class="fa-solid fa-user-circle me-1"></i> {{ user.username }}
+                                    </label>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="user-selected-list" id="selectedUsersList"></div>
+                </div>
             </div>
 
             <div class="d-flex align-items-center justify-content-between mt-4">
                 <button type="submit" class="btn-publish">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Publish Story
                 </button>
-                <span class="text-muted small d-none d-md-inline">
+                <span class="text-muted small d-none d-md-inline" id="visibilityText">
                     <i class="fa-solid fa-circle-info me-1"></i> Your story will be visible to everyone.
                 </span>
             </div>
@@ -159,6 +349,76 @@
                 }
             }
         });
+
+        // Initialize visibility state
+        updateVisibilityText();
+        toggleUserSelection();
+        updateSelectedUsers();
     });
+
+    function toggleUserSelection() {
+        const visibility = document.querySelector('input[name="visibility"]:checked').value;
+        const userSection = document.getElementById('userSelectionSection');
+        
+        if (visibility === 'specific') {
+            userSection.classList.add('active');
+        } else {
+            userSection.classList.remove('active');
+        }
+
+        updateVisibilityText();
+    }
+
+    function updateVisibilityText() {
+        const visibility = document.querySelector('input[name="visibility"]:checked').value;
+        const textEl = document.getElementById('visibilityText');
+        
+        if (visibility === 'private') {
+            textEl.innerHTML = '<i class="fa-solid fa-lock me-1"></i> Only you can see this post.';
+        } else if (visibility === 'specific') {
+            const selected = document.querySelectorAll('input[name="allowed_users"]:checked').length;
+            textEl.innerHTML = `<i class="fa-solid fa-user-group me-1"></i> Visible to ${selected} selected user(s).`;
+        } else {
+            textEl.innerHTML = '<i class="fa-solid fa-globe me-1"></i> Your story will be visible to everyone.';
+        }
+    }
+
+    function filterUsers() {
+        const searchValue = document.getElementById('userSearch').value.toLowerCase();
+        const userItems = document.querySelectorAll('.user-item');
+
+        userItems.forEach(item => {
+            const username = item.querySelector('label').textContent.toLowerCase();
+            if (username.includes(searchValue)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function updateSelectedUsers() {
+        const selectedList = document.getElementById('selectedUsersList');
+        selectedList.innerHTML = '';
+
+        const checked = document.querySelectorAll('input[name="allowed_users"]:checked');
+        checked.forEach(checkbox => {
+            const username = checkbox.nextElementSibling.textContent.trim().replace(/^\d+/, '').trim();
+            const userId = checkbox.value;
+            
+            const badge = document.createElement('span');
+            badge.className = 'user-badge';
+            badge.innerHTML = `${username} <span class="remove-user" onclick="removeUser(${userId})">&times;</span>`;
+            selectedList.appendChild(badge);
+        });
+
+        updateVisibilityText();
+    }
+
+    function removeUser(userId) {
+        const checkbox = document.querySelector(`input[value="${userId}"]`);
+        checkbox.checked = false;
+        updateSelectedUsers();
+    }
 </script>
 {% endblock %}
