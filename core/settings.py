@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-%_pio@_f_eg2p93rqi2apq$4icbt5t#ml!kb&d(0!oeysr3b8v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', 'https://ostad-blog-kt4c.onrender.com']
+ALLOWED_HOSTS = ['*', 'ostad-blog-b0f9.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://ostad-blog-b0f9.onrender.com']
 
 
 # Application definition
