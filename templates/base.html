@@ -167,8 +167,8 @@
       /* Go To Top Button - Liquid Glass */
       .go-top-btn {
         position: fixed;
-        right: 24px;
-        bottom: 24px;
+        right: 20px;
+        bottom: 20px;
         width: 56px;
         height: 56px;
         border-radius: 50%;
@@ -205,6 +205,30 @@
         place-items: center;
         position: relative;
         overflow: hidden;
+      }
+
+      @media (max-width: 767px) {
+        .go-top-btn {
+          width: 48px;
+          height: 48px;
+          right: 12px;
+          bottom: 12px;
+          box-shadow: 0 8px 16px rgba(15,23,42,0.3);
+        }
+
+        .go-top-inner {
+          width: 36px;
+          height: 36px;
+        }
+
+        .go-top-ring {
+          width: 36px;
+          height: 36px;
+        }
+
+        .go-top-percent {
+          font-size: 0.72rem;
+        }
       }
 
       .go-top-inner::before {
