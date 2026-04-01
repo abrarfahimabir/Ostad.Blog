@@ -86,16 +86,57 @@
         padding: 6px 14px;
         border-radius: 50px;
         border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
       }
 
-      .btn-create {
-        background-color: var(--primary-color) !important;
-        color: white !important;
-        border-radius: 8px;
-        padding: 0.5rem 1.2rem !important;
+      .user-info:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-1px);
       }
 
-      .btn-logout { color: var(--danger-color) !important; font-weight: 600; }
+      .dropdown-menu {
+        background: var(--dark-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        animation: slideDown 0.3s ease-out;
+        margin-top: 8px;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .dropdown-item {
+        color: #94a3b8;
+        padding: 12px 20px;
+        transition: all 0.2s ease;
+      }
+
+      .dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-light);
+        transform: translateX(5px);
+      }
+
+      .btn-logout-dropdown {
+        color: var(--danger-color) !important;
+        font-weight: 600;
+      }
+
+      .btn-logout-dropdown:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color) !important;
+      }
 
       /* Simple Modern Footer */
       .simple-footer {
@@ -147,18 +188,22 @@
                 <li class="nav-item">
                   <a class="nav-link btn-create ms-lg-2" href="{% url 'post_create' %}"><i class="fa-solid fa-plus"></i> Create Post</a>
                 </li>
-                <li class="nav-item ms-lg-3 d-flex align-items-center gap-2">
-                  <span class="user-info d-none d-lg-flex align-items-center gap-2">
-                    <i class="fa-solid fa-circle-user text-primary"></i> {{ user.username }}
-                  </span>
-                  <form action="{% url 'logout' %}" method="post" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-link btn-logout px-3 border-0 bg-transparent">
-                      <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                      <span class="d-lg-none">Logout ({{ user.username }})</span>
-                      <span class="d-none d-lg-inline">Logout</span>
-                    </button>
-                  </form>
+                <li class="nav-item ms-lg-3">
+                  <div class="dropdown">
+                    <span class="user-info d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fa-solid fa-circle-user text-primary"></i> {{ user.username }}
+                    </span>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <form action="{% url 'logout' %}" method="post" class="m-0">
+                          {% csrf_token %}
+                          <button type="submit" class="dropdown-item btn-logout-dropdown">
+                            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Logout
+                          </button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
                 </li>
               {% else %}
                 <li class="nav-item">
