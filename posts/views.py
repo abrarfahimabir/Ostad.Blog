@@ -56,7 +56,7 @@ def post_create(request):
     selected_user_ids = []
     if request.method == "POST":
         form = PostForm(request.POST)
-        selected_user_ids = request.POST.getlist('allowed_users')
+        selected_user_ids = [str(uid) for uid in request.POST.getlist('allowed_users')]
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -72,6 +72,7 @@ def post_create(request):
             return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm()
+
     return render(request, 'posts/post_form.html', {
         'form': form,
         'selected_user_ids': selected_user_ids,
@@ -89,7 +90,7 @@ def post_edit(request, pk):
     selected_user_ids = []
     if request.method == "POST":
         form = PostForm(request.POST, instance=post)
-        selected_user_ids = request.POST.getlist('allowed_users')
+        selected_user_ids = [str(uid) for uid in request.POST.getlist('allowed_users')]
         if form.is_valid():
             post = form.save(commit=False)
             post.save()
@@ -104,7 +105,7 @@ def post_edit(request, pk):
             return redirect('post_detail', pk=post.pk)
     else:
         form = PostForm(instance=post)
-        selected_user_ids = list(post.allowed_users.values_list('id', flat=True))
+        selected_user_ids = [str(uid) for uid in post.allowed_users.values_list('id', flat=True)]
 
     return render(request, 'posts/post_form.html', {
         'form': form,
