@@ -81,6 +81,23 @@
         font-size: 1rem;
     }
 
+    .login-body .password-field-wrapper {
+        position: relative;
+    }
+
+    .login-body .toggle-password {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.2rem;
+    }
+
     .login-body input:focus {
         border-color: #6366f1;
         background: white;
@@ -189,6 +206,35 @@
             input.classList.add('form-control');
             input.placeholder = "Enter your " + input.name;
             input.parentElement.style.animationDelay = (index * 0.2) + 's';
+        });
+
+        const passwordFields = document.querySelectorAll('.login-body input[type="password"]');
+
+        passwordFields.forEach(field => {
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('password-field-wrapper');
+
+            field.parentNode.insertBefore(wrapper, field);
+            wrapper.appendChild(field);
+
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'toggle-password';
+            toggle.setAttribute('aria-label', 'Show/Hide password');
+            toggle.innerHTML = '<i class="fa-solid fa-eye"></i>';
+
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (field.type === 'password') {
+                    field.type = 'text';
+                    toggle.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                } else {
+                    field.type = 'password';
+                    toggle.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                }
+            });
+
+            wrapper.appendChild(toggle);
         });
     });
 </script>
