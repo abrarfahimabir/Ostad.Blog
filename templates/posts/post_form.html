@@ -62,6 +62,10 @@
         transition: all 0.3s ease;
     }
 
+    .form-group-wrapper .form-control {
+        margin-bottom: 1rem;
+    }
+
     .form-group-wrapper input:focus, 
     .form-group-wrapper textarea:focus {
         background-color: white;
@@ -369,13 +373,17 @@
         inputs.forEach(input => {
             input.classList.add('form-control');
             
-            // Add custom placeholders based on labels
-            const label = input.parentElement.querySelector('label');
-            if (label) {
-                if (input.tagName.toLowerCase() === 'textarea') {
-                    input.placeholder = "Write your thoughts here...";
-                } else {
-                    input.placeholder = "Enter " + label.innerText.replace(':', '');
+            // Add custom placeholders based on labels, fallback for empty labels
+            if (input.tagName.toLowerCase() === 'textarea') {
+                input.placeholder = input.value || "Write your thoughts here...";
+            } else if (input.name === 'title') {
+                input.placeholder = input.value || "Enter post title";
+            } else if (input.name === 'content') {
+                input.placeholder = input.value || "Enter post content";
+            } else {
+                const label = input.parentElement.querySelector('label');
+                if (label) {
+                    input.placeholder = input.value || "Enter " + label.innerText.replace(':', '');
                 }
             }
         });
