@@ -183,21 +183,21 @@
                     <div class="password-field-wrapper">
                         <input type="password" name="old_password" id="id_old_password" class="form-control" placeholder="Current Password" required>
                         <button type="button" class="toggle-password" onclick="togglePassword('id_old_password')">
-                            <i class="fa-solid fa-eye"></i>
+                            <i class="fa-solid fa-eye-slash"></i>
                         </button>
                     </div>
 
                     <div class="password-field-wrapper">
                         <input type="password" name="new_password1" id="id_new_password1" class="form-control" placeholder="New Password" required>
                         <button type="button" class="toggle-password" onclick="togglePassword('id_new_password1')">
-                            <i class="fa-solid fa-eye"></i>
+                            <i class="fa-solid fa-eye-slash"></i>
                         </button>
                     </div>
 
                     <div class="password-field-wrapper">
                         <input type="password" name="new_password2" id="id_new_password2" class="form-control" placeholder="Confirm New Password" required>
                         <button type="button" class="toggle-password" onclick="togglePassword('id_new_password2')">
-                            <i class="fa-solid fa-eye"></i>
+                            <i class="fa-solid fa-eye-slash"></i>
                         </button>
                     </div>
 
@@ -215,13 +215,13 @@
 <script>
     function togglePassword(fieldId) {
         const field = document.getElementById(fieldId);
-        const button = field.parentElement.querySelector('.toggle-password i');
+        const icon = field.parentElement.querySelector('.toggle-password i');
         if (field.type === 'password') {
             field.type = 'text';
-            button.className = 'fa-solid fa-eye-slash';
+            icon.className = 'fa-solid fa-eye';
         } else {
             field.type = 'password';
-            button.className = 'fa-solid fa-eye';
+            icon.className = 'fa-solid fa-eye-slash';
         }
     }
 
