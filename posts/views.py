@@ -1,27 +1,144 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
+from django.http import HttpResponseForbidden
 from .models import Post
 from .forms import PostForm, UserProfileForm
 
-# 1. Home View: Sob blog post eksathe dekhar jonno
-def home(request):
-    posts = Post.objects.all().order_by('-created_at')
-    
-    # Filter posts based on visibility
-    readable_posts = []
-    for post in posts:
-        if request.user.is_authenticated:
-            if post.is_readable_by(request.user):
-                readable_posts.append(post)
+# Custom Login View - Ignores 'next' parameter and always redirects to home
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f'Welcome back, {user.username}!')
+            # Always redirect to home, completely ignore any 'next' parameter
+            return redirect('home')
+    else:
+        form = AuthenticationForm()
+
+    return render(request, 'registration/login.html', {'form': form})
+
+
+# Class-based views with proper authorization
+
+class HomeView(ListView):
+    model = Post
+    template_name = 'posts/home.html'
+    context_object_name = 'posts'
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        posts = super().get_queryset()
+        user = self.request.user
+
+        # Filter posts based on visibility
+        readable_posts = []
+        for post in posts:
+            if user.is_authenticated:
+                if post.is_readable_by(user):
+                    readable_posts.append(post)
+            else:
+                if post.visibility == 'public':
+                    readable_posts.append(post)
+
+        return readable_posts
+
+
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'posts/post_detail.html'
+    context_object_name = 'post'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        # Check visibility permissions
+        if not request.user.is_authenticated:
+            if self.object.visibility != 'public':
+                return redirect('login')
         else:
-            if post.visibility == 'public':
-                readable_posts.append(post)
-    
-    return render(request, 'posts/home.html', {'posts': readable_posts})
+            if not self.object.is_readable_by(request.user):
+                messages.error(request, 'You do not have permission to view this post.')
+                return redirect('home')
+
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'posts/post_form.html'
+    success_url = reverse_lazy('home')
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        response = super().form_valid(form)
+
+        # Handle allowed users for specific visibility
+        if self.object.visibility == 'specific':
+            allowed_users = form.cleaned_data.get('allowed_user_objects', [])
+            self.object.allowed_users.set(allowed_users)
+        else:
+            self.object.allowed_users.clear()
+
+        # Redirect to post detail instead of home
+        self.success_url = reverse_lazy('post_detail', kwargs={'pk': self.object.pk})
+        return response
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'posts/post_form.html'
+
+    def test_func(self):
+        """Check if user is the author of the post"""
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        """Handle unauthorized access"""
+        if not self.request.user.is_authenticated:
+            return redirect('login')
+        return HttpResponseForbidden("You don't have permission to edit this post.")
+
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.pk})
+
+    def get_initial(self):
+        """Pre-populate allowed_usernames field"""
+        initial = super().get_initial()
+        if self.object.visibility == 'specific':
+            existing_usernames = ', '.join(self.object.allowed_users.values_list('username', flat=True))
+            initial['allowed_usernames'] = existing_usernames
+        return initial
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Handle allowed users for specific visibility
+        if self.object.visibility == 'specific':
+            allowed_users = form.cleaned_data.get('allowed_user_objects', [])
+            self.object.allowed_users.set(allowed_users)
+        else:
+            self.object.allowed_users.clear()
+
+        return response
+
+
+# Function-based views (keeping register, my_posts, and profile for now)
 
 # 2. Register View: Notun user account kholar jonno
 def register(request):
@@ -35,90 +152,35 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
-# 3. Post Detail View: Ekta specific blog purota porar jonno
-def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    
-    # Check visibility permissions
-    if not request.user.is_authenticated:
-        if post.visibility != 'public':
-            return redirect('login')
-    else:
-        if not post.is_readable_by(request.user):
-            messages.error(request, 'You do not have permission to view this post.')
-            return redirect('home')
-    
-    return render(request, 'posts/post_detail.html', {'post': post})
-
-# 4. Create Post View: Login kora user-ra post likhte parbe
-@login_required
-def post_create(request):
-    if request.method == "POST":
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-
-            if post.visibility == 'specific':
-                allowed_users = form.cleaned_data.get('allowed_user_objects', [])
-                post.allowed_users.set(allowed_users)
-            else:
-                post.allowed_users.clear()
-
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostForm()
-
-    return render(request, 'posts/post_form.html', {
-        'form': form,
-    })
-
-# 5. Update Post View: Shudhu author nijei edit korte parbe
-@login_required
-def post_edit(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    
-    # Check: Onno keu jeno edit korte na pare
-    if post.author != request.user:
-        return redirect('home')
-
-    if request.method == "POST":
-        form = PostForm(request.POST, instance=post)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.save()
-
-            if post.visibility == 'specific':
-                allowed_users = form.cleaned_data.get('allowed_user_objects', [])
-                post.allowed_users.set(allowed_users)
-            else:
-                post.allowed_users.clear()
-
-            return redirect('post_detail', pk=post.pk)
-    else:
-        existing_usernames = ', '.join(post.allowed_users.values_list('username', flat=True))
-        form = PostForm(instance=post, initial={'allowed_usernames': existing_usernames})
-
-    return render(request, 'posts/post_form.html', {
-        'form': form,
-    })
-
 # 6. Delete Post View: Author nijei delete korte parbe
-@login_required
-def post_delete(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    
-    # Check: Author chara keu delete korte parbe na
-    if post.author == request.user:
-        post.delete()
-        messages.success(request, 'আপনার পোস্টটি সফলভাবে ডিলিট হয়েছে।')
-    return redirect('home')
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    success_url = reverse_lazy('home')
+    template_name = 'posts/post_confirm_delete.html'  # We'll need to create this template
 
-@login_required
-def my_posts(request):
-    user_posts = Post.objects.filter(author=request.user).order_by('-created_at')
-    return render(request, 'posts/my_posts.html', {'posts': user_posts})
+    def test_func(self):
+        """Check if user is the author of the post"""
+        post = self.get_object()
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        """Handle unauthorized access"""
+        if not self.request.user.is_authenticated:
+            return redirect('login')
+        return HttpResponseForbidden("You don't have permission to delete this post.")
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Your post has been successfully deleted.')
+        return super().delete(request, *args, **kwargs)
+
+class MyPostsView(LoginRequiredMixin, ListView):
+    model = Post
+    template_name = 'posts/my_posts.html'
+    context_object_name = 'posts'
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        return Post.objects.filter(author=self.request.user)
 
 @login_required
 def profile(request):
